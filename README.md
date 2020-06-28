@@ -2,7 +2,7 @@
 
 A typescript playground based on [StephenGrider/JSPlaygrounds](https://github.com/StephenGrider/JSPlaygrounds)
 
-[Demo](https://dilsonnn.github.io/TSPlaygrounds)
+[Demo](https://dilsonnn.github.io/Typescript-Playgrounds)
 
 ### Running Locally
 
