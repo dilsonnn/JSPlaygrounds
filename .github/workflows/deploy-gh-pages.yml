@@ -1,0 +1,43 @@
+on:
+  push:
+    branches: [ master ]
+name: Build angular pages
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [12.x]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: master
+      - name: Cache node modules
+        uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - name: Node ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Delete branch
+        run: |
+          git fetch --all
+          git push -d origin gh-pages || :
+      - name: npm install and npm run build
+        run: |
+          npm i
+          npm run build
+          mv dist/*/* .
+      - name: Commit files
+        run: |
+          git push -d origin gh-pages || :
+          git checkout -b gh-pages
+          git config --global user.name 'TS Playground deployer'
+          git config --global user.email 'tsplayground@ts-playground.com'
+          git add -A .
+          git commit -am "Automated deployment of TS playground"
+          git push -u origin gh-pages
