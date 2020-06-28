@@ -1,7 +1,7 @@
 on:
   push:
     branches: [ master ]
-name: Build Github pages
+name: Build Github pages bundle
 jobs:
   build:
     runs-on: ubuntu-latest
