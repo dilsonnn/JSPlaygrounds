@@ -41,3 +41,9 @@ jobs:
           sed -i -e '$a<!--DEPLOYED-->' index.html
           git commit -am "Automated deployment of TS playground"
           git push -u origin gh-pages
+      - name: Trigger GitHub pages rebuild
+        run: |
+          curl --fail --request POST \
+            --url https://api.github.com/repos/${{ github.repository }}/pages/builds \
+            --header "Authorization: Bearer $GH_PUBLIC_SECRET"
+
