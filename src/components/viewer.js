@@ -22,8 +22,8 @@ class Viewer extends Component {
       return result;
     });
 
-    return _.map(formattedExpressions, (expression, line) =>
-      <div>{expression}</div>
+    return _.map(formattedExpressions, (expression, index) =>
+      <div key={`index-${index}`}>{expression}</div>
     );
   }
 
@@ -33,11 +33,11 @@ class Viewer extends Component {
 
   render() {
     const defaultHeight = window.innerHeight / 1.3;
-
+    console.log(this.props);
     return (
       <SplitPane split="horizontal" defaultSize={defaultHeight} className="viewer">
         <div className="result">
-          {this.renderExpressions(this.props.code)}
+          {_.isEmpty(this.props.errors) && this.renderExpressions(this.props.code)}
         </div>
         <div className="errors">
           {this.props.errors}
@@ -51,7 +51,9 @@ function mapStateToProps(state){
   let expressions, errors;
 
   try {
-    expressions = parseExpressions(state);
+    const parsedExpression = parseExpressions(state);
+    expressions = parsedExpression.expressions;
+    errors = parsedExpression.errors;
   } catch (e) {
     errors = e.toString();
   }
