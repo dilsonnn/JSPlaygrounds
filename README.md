@@ -1,6 +1,6 @@
-# JSPlaygrounds
+# Typescript Playgrounds
 
-[Show me the demo!](https://stephengrider.github.io/JSPlaygrounds/)
+A typescript playground based on [StephenGrider/JSPlaygrounds](https://github.com/StephenGrider/JSPlaygrounds)
 
 ### Running Locally
 
@@ -11,6 +11,6 @@
 
 ### Contributing
 
-Please do!
+Please feel free to open a pull request
 
 
