@@ -38,5 +38,6 @@ jobs:
           git config --global user.email 'tsplayground@ts-playground.com'
           git add -A .
           git add --force bundle.js
+          sed -i -e '$a<!--DEPLOYED-->' index.html
           git commit -am "Automated deployment of TS playground"
           git push -u origin gh-pages
