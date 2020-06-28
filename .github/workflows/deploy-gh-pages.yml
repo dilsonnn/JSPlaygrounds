@@ -36,7 +36,7 @@ jobs:
           git checkout -b gh-pages
           git config --global user.name 'TS Playground deployer'
           git config --global user.email 'tsplayground@ts-playground.com'
-          rm -rf .gitignore
           git add -A .
+          git add --force bundle.js
           git commit -am "Automated deployment of TS playground"
           git push -u origin gh-pages
