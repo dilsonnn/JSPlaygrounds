@@ -33,7 +33,6 @@ jobs:
           npm run build
       - name: Commit files
         run: |
-          git push -d origin gh-pages || :
           git checkout -b gh-pages
           git config --global user.name 'TS Playground deployer'
           git config --global user.email 'tsplayground@ts-playground.com'
