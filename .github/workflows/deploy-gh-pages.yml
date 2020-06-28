@@ -1,7 +1,7 @@
 on:
   push:
     branches: [ master ]
-name: Build angular pages
+name: Build Github pages
 jobs:
   build:
     runs-on: ubuntu-latest
