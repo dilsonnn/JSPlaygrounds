@@ -31,9 +31,13 @@ jobs:
         run: |
           npm i
           npm run build
-      - name: Deploy 🚀
-        uses: JamesIves/github-pages-deploy-action@releases/v3
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH: gh-pages
-          FOLDER: .
+      - name: Commit files
+        run: |
+          git checkout -b gh-pages
+          git config --global user.name 'TS Playground deployer'
+          git config --global user.email 'tsplayground@ts-playground.com'
+          git add -A .
+          git add --force bundle.js
+          sed -i -e '$a<!--DEPLOYED-->' index.html
+          git commit -am "Automated deployment of TS playground"
+          git push -u origin gh-pages
