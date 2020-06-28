@@ -3,12 +3,16 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import parseExpressions from '../selectors/parse_expressions';
 import SplitPane from 'react-split-pane';
+import { expr } from 'jquery';
 
 class Viewer extends Component {
   evaluateExpressions(expressions) {
     const formattedExpressions = _.mapValues(expressions, expression => {
       const result = eval(expression);
-
+      // Looks bad, but ok for now until i figure out how to apply a context to ts compiler.
+      if(result && typeof result == 'string' && result.indexOf('<console.log>') > 1){
+        return result.split('<console.log>');
+      }
       if (result && result.type) {
         return result;
       } else if (_.isFunction(result) && result.name) {
@@ -21,10 +25,15 @@ class Viewer extends Component {
 
       return result;
     });
-
-    return _.map(formattedExpressions, (expression, index) =>
-      <div key={`index-${index}`}>{expression}</div>
-    );
+     
+    return _.map(formattedExpressions, (expression, index) =>{
+      if(_.isArray(expression)){
+        return expression.map((expression, innerIdx) => <div key={`index-${index}-${innerIdx}`}>
+          <div>{expression}</div>
+        </div>)
+      }
+      return <div key={`index-${index}`}>{expression}</div>
+    });
   }
 
   renderExpressions(code) {
@@ -33,7 +42,6 @@ class Viewer extends Component {
 
   render() {
     const defaultHeight = window.innerHeight / 1.3;
-    console.log(this.props);
     return (
       <SplitPane split="horizontal" defaultSize={defaultHeight} className="viewer">
         <div className="result">

@@ -5,7 +5,10 @@ import 'codemirror/mode/jsx/jsx';
 import * as actions from '../actions';
 import { connect } from 'react-redux';
 
+
 class Editor extends Component {
+
+
   onCodeChange(code) {
     this.props.updateCode(code);
   }
@@ -14,9 +17,10 @@ class Editor extends Component {
     return (
       <div>
         <CodeMirror
+          defaultValue={this.props.code}
           value={this.props.code}
           onChange={this.onCodeChange.bind(this)}
-          options={{ mode: 'application/typescript', lineNumbers: true, tabSize: 2, typescript: true }} />
+          options={{ mode: 'application/typescript', lineNumbers: true, tabSize: 2 }} />
       </div>
     );
   }

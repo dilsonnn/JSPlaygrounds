@@ -4,7 +4,6 @@ import {
 
 export function updateCode(code) {
   console.clear();
-
   return {
     type: DID_UPDATE_CODE,
     payload: code

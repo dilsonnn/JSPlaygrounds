@@ -18,10 +18,19 @@ const findDelimiters = ({ column }, lineContents) =>
   _.intersection(_.takeRight(lineContents, lineContents.length - column), OPEN_DELIMITERS).length
 
 
+
+const compilerOptions = {
+  module: ts.ModuleKind.CommonJS,
+  experimentalDecorators: true,
+  target: ts.ScriptTarget.ES2016,
+  moduleResolution: ts.ModuleResolutionKind.CommonJS,
+};
 const getTypescriptErrors = (code) => {
   const filename = 'example.ts';
   const host = {
-    getSourceFile: (f) => ts.createSourceFile(filename, code),
+    getSourceFile: (f) => {
+      return ts.createSourceFile(filename, code, "0");
+    },
     useCaseSensitiveFileNames: () => false,
     getCanonicalFileName: (f) => f,
     getDefaultLibFileName: () => '',
@@ -33,7 +42,8 @@ const getTypescriptErrors = (code) => {
   };
   const program = ts.createProgram([filename], {
     maxNodeModuleJsDepth: 1,
-    noEmitOnError: true
+    noEmitOnError: true,
+    ...compilerOptions
   }, host);
 
   return program.emit().diagnostics
@@ -41,15 +51,30 @@ const getTypescriptErrors = (code) => {
   .map(f => {
     const pos = f.file.getLineAndCharacterOfPosition(f.start);
     const message = (_.get(f, 'messageText.messageText', f.messageText));
-    return pos.line + ':' + pos.character + ' - ' + message + '\n';
+    return (pos.line + 1) + ':' + pos.character + ' - ' + message + '\n';
+  }).filter(message => {
+    // There may be a better way, but its ok for our purposes.
+    if(message.includes("Cannot find name 'console'") > 0){
+      return undefined;
+    }
+    return message;
   });
 
 };
 
-
 const parseExpressions = (code) => {
-  const compiledToTypescript = ts.transpileModule(code, { compilerOptions: { module: ts.ModuleKind.CommonJS }});
-  const compiledCode = compiledToTypescript.outputText;
+  const compiledToTypescript = ts.transpileModule(code, { compilerOptions });
+  let compiledCode = compiledToTypescript.outputText;
+  var consoleRegex = new RegExp('console.log', 'g');
+  compiledCode = compiledCode.replace(consoleRegex, 'logInternal');
+  compiledCode = `
+    let context = '';
+    const logInternal = (args) => {
+      context += args + "<console.log>";
+    }
+    ${compiledCode}
+    context;
+  `;
   const codeByLine = compiledCode.split('\n');
   const tokenized = esprima.tokenize(compiledCode, { loc: true });
   const parens = { '(': 0, '{': 0, '[': 0 };
@@ -85,8 +110,6 @@ const parseExpressions = (code) => {
 
     return expressions;
   }, {});
-
-  eval(compiledCode);
   return {
     expressions,
     errors: getTypescriptErrors(code)
