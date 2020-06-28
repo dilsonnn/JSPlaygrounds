@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import { createSelector } from 'reselect';
-import { transform } from 'babel-standalone';
-// import esprima from 'esprima';
+import * as ts from "typescript";
+
 
 
 const codeSelector = state => state.code;
@@ -17,21 +17,48 @@ const DELIMITER_MAP = {
 const findDelimiters = ({ column }, lineContents) =>
   _.intersection(_.takeRight(lineContents, lineContents.length - column), OPEN_DELIMITERS).length
 
-const parseExpressions = (code) => {
-  const transformedCode = transform(code, { presets: ['react']}).code;
-  console.log("transformedCode", transformedCode);
-  const codeByLine = transformedCode.split('\n');
-  console.log("codeByLine", codeByLine);
-  const tokenized = esprima.tokenize(transformedCode, { loc: true });
 
+const getTypescriptErrors = (code) => {
+  const filename = 'example.ts';
+  const host = {
+    getSourceFile: (f) => ts.createSourceFile(filename, code),
+    useCaseSensitiveFileNames: () => false,
+    getCanonicalFileName: (f) => f,
+    getDefaultLibFileName: () => '',
+    getNewLine: () => '\n',
+    getCurrentDirectory: () => '/',
+    maxNodeModuleJsDepth: 1,
+    fileExists: () => false,
+    readFile: () => code
+  };
+  const program = ts.createProgram([filename], {
+    maxNodeModuleJsDepth: 1,
+    noEmitOnError: true
+  }, host);
+
+  return program.emit().diagnostics
+  .filter(d => d.file)
+  .map(f => {
+    const pos = f.file.getLineAndCharacterOfPosition(f.start);
+    const message = (_.get(f, 'messageText.messageText', f.messageText));
+    return pos.line + ':' + pos.character + ' - ' + message + '\n';
+  });
+
+};
+
+
+const parseExpressions = (code) => {
+  const compiledToTypescript = ts.transpileModule(code, { compilerOptions: { module: ts.ModuleKind.CommonJS }});
+  const compiledCode = compiledToTypescript.outputText;
+  const codeByLine = compiledCode.split('\n');
+  const tokenized = esprima.tokenize(compiledCode, { loc: true });
   const parens = { '(': 0, '{': 0, '[': 0 };
   let wasOpen = false;
-  const exp = _.reduce(tokenized, (expressions, { value, loc: { end } }, index) => {
+  const expressions = _.reduce(tokenized, (expressions, { value, loc: { end } }, index) => {
     const lineNumber = end.line;
     const lineContents = codeByLine[lineNumber - 1];
     const lineHasMoreDelimiters = findDelimiters(end, lineContents);
-    const endOfLine = end.column === lineContents.length;
-
+    
     if (expressions[lineNumber]) { return expressions; }
 
     if (OPEN_DELIMITERS.includes(value)) {
@@ -59,8 +86,11 @@ const parseExpressions = (code) => {
     return expressions;
   }, {});
 
-  eval(transformedCode);
-  return exp;
+  eval(compiledCode);
+  return {
+    expressions,
+    errors: getTypescriptErrors(code)
+  };
 }
 
 export default createSelector(
