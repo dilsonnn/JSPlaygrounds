@@ -8,7 +8,12 @@ import { expr } from 'jquery';
 class Viewer extends Component {
   evaluateExpressions(expressions) {
     const formattedExpressions = _.mapValues(expressions, expression => {
-      const result = eval(expression);
+      let result;
+      try {
+        result = eval(expression);
+      }catch(e){
+        result = e;
+      }
       // Looks bad, but ok for now until i figure out how to apply a context to ts compiler.
       if(result && typeof result == 'string' && result.indexOf('<console.log>') > 1){
         return result.split('<console.log>');
